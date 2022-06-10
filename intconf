@@ -1,0 +1,142 @@
+#!/bin/csh
+clear
+
+set PATH_PON_IP = '/usr/local/list/pon_ip.list'
+set PATH_COMP_IP = '/usr/local/list/comp_ip.list'
+
+set PATH_GROUP_L = '/usr/local/etc/lightsquid/group.cfg'
+set PATH_REALNAME_L = '/usr/local/etc/lightsquid/realname.cfg'
+set PATH_NAME_L = '/usr/local/www/lightsquid/users.txt'
+
+set PATH_USERS_TEST = '/usr/local/TESTS/users.txt'
+
+while (1)
+clear
+echo "----------------------------------------------------------------"
+echo " Configure INTGATEWAY / Настройка интернет сервера INTGATEWAY "
+echo "----------------------------------------------------------------"
+echo "1) Add user NAT Computer / Добавить пользователя NAT"
+echo "2) Add user proxy SQUID / Добавить пользователя SQUID"
+echo "3) Restart PF / Перезагрузить PF"
+echo "4) Apply parametrs PF / Применить правила PF"
+echo "5) Apply parametrs SQUID / Применить параметры SQUID"
+echo "6) Parsing log in lightsquid / Выгрузить логи lightsquid"
+echo "----------------------------------------------------------------"
+echo "7) Exit / Выход"
+echo "----------------------------------------------------------------"
+echo -n "Select parametrs / Выберите параметр: "
+set rejim = $<
+
+switch ($rejim)
+        case [1]:
+        echo ""
+        echo -n "Enter IP adress user NAT Computer / Введите IP адрес пользователя NAT: "
+        set usipcomp = $<
+        echo "Save data \ Сохранить данные (1\0)?"
+        echo -n ""
+            set yesno_nc = $<
+                switch ($yesno_nc)
+                    case [1]:
+                        echo $usipcomp >> $PATH_COMP_IP
+                        clear
+                        echo "--------------------------------------------------------------------"
+                        echo "Save ok \ Сохранено успешно!"
+                        echo "--------------------------------------------------------------------"
+                        echo -n "Press any key to continue \ Нажмите любую клавишу для продолжения"
+                        set continue = $<
+                        breaksw
+                    case [0]:
+                        clear
+                        echo "--------------------------------------------------------------------"
+                        echo "Canceled \ Отменено!"
+                        echo "--------------------------------------------------------------------"
+                        echo -n "Press any key to continue \ Нажмите любую клавишу для продолжения"
+                        set continue = $<
+                        breaksw
+                endsw
+        breaksw
+        case [2]:
+            echo ""
+            echo -n "IP adress \ Введите IP адрес пользователя: "
+                set usip = $<
+            echo -n "Name \ Введите имя пользователя: "
+                set usname = $<
+            echo -n "Name lightsquid \ Введите имя пользователя в lightsquid: "
+                set realuname = $<
+            echo ""
+            echo "Enter data \ Проверьте правильность введённых данных:"
+                echo "IP:" $usip
+                echo "User: " $usname
+                echo "Name: " $realuname
+            echo ""
+            echo "Save data \ Сохранить данные (1\0))?"
+                echo -n ""
+            set yesno = $<
+                switch ($yesno)
+                    case [1]:
+                    echo $usip >> $PATH_PON_IP
+                    echo $usip $usname >> $PATH_NAME_L
+                    echo $usname "01 OIT" >> $PATH_GROUP_L
+                    echo $usname $realuname >> $PATH_REALNAME_L
+                    clear
+                    echo "--------------------------------------------------------------------"
+                    echo "Save ok \ Сохранено успешно!"
+                    echo "--------------------------------------------------------------------"
+                    echo -n "Press any key to continue \ Нажмите любую клавишу для продолжения"
+                    set continue = $<
+                    breaksw
+                    case [0]:
+                    clear
+                    echo "--------------------------------------------------------------------"
+                    echo "Canceled \ Отменено!"
+                    echo "--------------------------------------------------------------------"
+                    echo -n "Press any key to continue \ Нажмите любую клавишу для продолжения"
+                    set continue = $<
+                    breaksw
+            endsw
+            breaksw
+        case [3]:
+            /etc/rc.d/pf restart; clear;;
+            echo "--------------------------------------------------------------------"
+            echo "PF restarted \ PF перезагружен!"
+            echo "--------------------------------------------------------------------"
+            echo -n "Press any key to continue \ Нажмите любую клавишу для продолжения"
+            set continue = $<
+            breaksw
+        case [4]:
+            pfctl -f /etc/pf.conf; clear;;
+            echo "--------------------------------------------------------------------"
+            echo "Save ok \ Правила PF применены успешно!"
+            echo "--------------------------------------------------------------------"
+            echo -n "Press any key to continue \ Нажмите любую клавишу для продолжения"
+            set continue = $<
+            breaksw
+        case [5]:
+            squid -k reconfigure; clear;;
+            echo "--------------------------------------------------------------------"
+            echo "Configure ok \ SQUID сконфигурирован успешно!"
+            echo "--------------------------------------------------------------------"
+            echo -n "Press any key to continue \ Нажмите любую клавишу для продолжения"
+            set continue = $<
+            breaksw
+        case [6]:
+            /usr/local/www/lightsquid/check-setup.pl; /usr/local/www/lightsquid/lightparser.pl; clear;;
+            echo "--------------------------------------------------------------------"
+            echo "Ok \ Логи успешно выгружены!"
+            echo "--------------------------------------------------------------------"
+            echo -n "Press any key to continue \ Нажмите любую клавишу для продолжения"
+            set continue = $<
+            breaksw
+        case [7]:
+            clear
+            exit 1
+default:
+    clear;
+    echo "--------------------------------------------------------------------"
+    echo "Invalid parametrs \ Неверный параметр!"
+    echo "--------------------------------------------------------------------"
+    echo -n "Press any key to continue \ Нажмите любую клавшу для продолжения"
+    set continue = $<
+    clear
+endsw
+end
